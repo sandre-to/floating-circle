@@ -12,33 +12,41 @@ function love.load()
     collShape.x = circle.x
     collShape.y = circle.y
     collShape.width = 30
-    collShape.height = 30
+    collShape.height = 30   
 
     timer = 0
 
-    listOfRectangles = {}
+    listOfPipes = {}
 end
 
 function love.update(dt)
     timer = timer + dt
     
-    if timer > 2 then
+    if timer > 1.2 then
         spawnPipe()
         timer = 0
     end
 
-    if listOfRectangles then
-        for i, v in ipairs(listOfRectangles) do
+    if listOfPipes then
+        for i, v in ipairs(listOfPipes) do
             v.x = v.x - v.speed * dt
 
             if v.x < 50 then
-                table.remove(listOfRectangles, i)
+                table.remove(listOfPipes, i)
             end
+
+            checkCollision(v, collShape)
         end
     end
 
     -- player gravity
     circle.y = circle.y + circle.gravity * dt
+
+    if circle.y > love.graphics.getHeight() then
+        circle.y = 0
+    elseif circle.y < 0 then
+        circle.y = love.graphics.getHeight()
+    end 
     
     if love.keyboard.isDown("space") then
         circle.y = circle.y - circle.jumpForce
@@ -52,8 +60,13 @@ function love.draw()
     love.graphics.circle("line", circle.x, circle.y, circle.radius)
     love.graphics.rectangle("line", collShape.x, collShape.y, collShape.width, collShape.height)
 
-    for i, v in ipairs(listOfRectangles) do
-        love.graphics.rectangle("line", v.x, v.y, v.width, v.height)
+    for i, v in ipairs(listOfPipes) do
+
+        if checkCollision(v, collShape) then
+            love.graphics.rectangle("fill", v.x, v.y, v.width, v.height)
+        else
+            love.graphics.rectangle("line", v.x, v.y, v.width, v.height)
+        end
     end
     
     love.graphics.print(timer, 200, 200)
@@ -67,7 +80,7 @@ function spawnPipe()
     pipe.height = 100
     pipe.speed = 200
 
-    table.insert(listOfRectangles, pipe)
+    table.insert(listOfPipes, pipe)
 end
 
 function checkCollision(a, b)
