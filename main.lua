@@ -2,29 +2,35 @@ if arg[2] == "debug" then
     require("lldebugger").start()
 end
 
+function love.keypressed(key)
+    player:keyPressed(key)
+end
+
 function love.load()
     Object = require "objects.classic"
     require "objects.player"
+    require "objects.bullet"
     require "objects.timer"
 
     player = Player()
-    gameTimer = Timer(0, true)
-    listofPipes = {}
+    ammo = {}
 end
+
 
 function love.update(dt)
     player:update(dt)
-    gameTimer:update(dt)
+
+    for i, v in ipairs(ammo) do
+        v:update(dt)
+    end
 end
 
 function love.draw()
     player:draw()
-    gameTimer:draw()
-end
 
-function spawnPipes()
-    pipe = Pipe()
-    table.insert(listofPipes, pipe)
+    for i, v in ipairs(ammo) do
+        v:draw()
+    end
 end
 
 local love_errorhandler = love.errorhandler

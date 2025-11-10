@@ -7,6 +7,12 @@ function Player:new()
     self.speed = 200
 end
 
+function Player:keyPressed(key)
+    if key == "space" then
+        table.insert(ammo, Bullet(self))
+    end
+end
+
 function Player:update(dt)
     if love.keyboard.isDown("up") then
         self.y = self.y - self.speed * dt
