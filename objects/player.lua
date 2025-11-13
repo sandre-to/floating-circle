@@ -3,10 +3,14 @@ Player = Object:extend()
 local isAscending = true
 
 function Player:new()
-    self.x = love.graphics.getWidth() / 2
+    -- player
+    self.width = 50
+    self.height = 50
+    self.speed = 250
+    self.x = love.graphics.getWidth() / 2 - self.width / 2
     self.y = love.graphics.getHeight() / 2
-    self.radius = 30
-    self.speed = 200
+    
+    -- weapon/ammo
     self.ammo = {}
     self.fireRate = Timer(2, not isAscending, 200, 200)
     self.canFire = true
@@ -45,6 +49,5 @@ end
 
 function Player:draw()
     love.graphics.setColor(1, 1, 1)
-    love.graphics.circle("fill", self.x, self.y, self.radius)
-    self.fireRate:draw()
+    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 end

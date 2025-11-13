@@ -1,12 +1,22 @@
 if arg[2] == "debug" then
     require("lldebugger").start()
 end
- 
+
+-- variables
 local isAscending = true
 local spawnTime = 2
+local coinTimer
+local player
+local listOfCoins
+
+-- ui
+local score = 0
+local phase = 1
 
 function love.keypressed(key)
-    player:keyPressed(key)
+    if not phase == 1 then
+        player:keyPressed(key)
+    end
 end
 
 function love.load()
@@ -14,63 +24,57 @@ function love.load()
     require "objects.player"
     require "objects.bullet"
     require "objects.timer"
-    require "objects.pipe"
+    require "objects.coin"
 
-    gameTimer = Timer(spawnTime, not isAscending, 300, 300)
-    gameTimer.isStarting = true
+    coinTimer = Timer(spawnTime, not isAscending, 300, 300)
+    coinTimer.isStarting = true
     player = Player()
-    listOfPipes = {}
+    listOfCoins = {}
 end
 
 function love.update(dt)
     player:update(dt)
-    gameTimer:update(dt)
+    coinTimer  :update(dt)
     
-    if gameTimer.waitTime < 0 then
-        gameTimer.waitTime = spawnTime
-        spawnPipes()
+    if coinTimer.waitTime < 0 then
+        coinTimer.waitTime = spawnTime
+        spawnTime = spawnTime - dt
+        table.insert(listOfCoins, Coin())
     end
 
-    for i, v in ipairs(player.ammo) do
+    for i, v in ipairs(listOfCoins) do
         v:update(dt)
 
-        if #listOfPipes > 0 then
-            for index, pipe in ipairs(listOfPipes) do
-                v:checkCollision(pipe)
+        if v.x < -50 then
+            table.remove(listOfCoins, i)
+        end
 
+        if v:checkCollision(player) then
+            v.isColliding = true
+            if not v.hasPickedUp then
+                score = score + 1
+                v.hasPickedUp = true
             end
-        end
-
-        if v.isColliding then
-            v.dead = true
-            table.remove(player.ammo, i)
-        end
-    end
-
-    for i, v in ipairs(listOfPipes) do
-        v:update(dt)
-
-        if v.x < 0 then
-            table.remove(listOfPipes, i)
+        else
+            v.hasPickedUp = false
         end
     end
 end
 
 function love.draw()
     player:draw()
-    gameTimer:draw()
+    coinTimer:draw()
 
     for i, v in ipairs(player.ammo) do
         v:draw()
     end
 
-    for i, v in ipairs(listOfPipes) do
+    for i, v in ipairs(listOfCoins) do
         v:draw()
     end
-end
 
-function spawnPipes()
-    table.insert(listOfPipes, Pipe())
+    love.graphics.setFont(love.graphics.newFont(60))
+    love.graphics.print(string.format("%.0f", score), love.graphics.getWidth() / 2, 50)
 end
 
 

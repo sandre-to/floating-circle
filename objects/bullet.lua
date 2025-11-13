@@ -1,8 +1,8 @@
 Bullet = Object:extend()
 
 function Bullet:new(holder)
-    self.x = holder.x
-    self.y = holder.y
+    self.x = holder.x + holder.width / 2
+    self.y = holder.y + holder.height / 2
     self.radius = 20
     self.speed = 300
     self.isColliding = false
