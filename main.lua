@@ -4,17 +4,20 @@ end
 
 -- variables
 local isAscending = true
-local spawnTime = 2
-local coinTimer
 local player
 local listOfCoins
 
+-- timers
+local spawnTime = 0.8
+local coinTimer
+local gameTimer
+
 -- ui
 local score = 0
-local phase = 1
+local phase = 0
 
 function love.keypressed(key)
-    if not phase == 1 then
+    if phase == 1 then
         player:keyPressed(key)
     end
 end
@@ -27,43 +30,66 @@ function love.load()
     require "objects.coin"
 
     coinTimer = Timer(spawnTime, not isAscending, 300, 300)
-    coinTimer.isStarting = true
+    gameTimer = Timer(0, isAscending, 300, 50)
+    coinTimer.started = true
+    gameTimer.started = true
     player = Player()
     listOfCoins = {}
 end
 
 function love.update(dt)
-    player:update(dt)
-    coinTimer  :update(dt)
+    if phase == 0 then
+        player:update(dt)
+        coinTimer:update(dt)
+        gameTimer:update(dt)
     
-    if coinTimer.waitTime < 0 then
-        coinTimer.waitTime = spawnTime
-        spawnTime = spawnTime - dt
-        table.insert(listOfCoins, Coin())
-    end
+        if gameTimer.waitTime >= 15 then
+            phase = 1
+            player.x = (love.graphics.getWidth() / 2) - 200
+            gameTimer.waitTime = 0
+            gameTimer.started = false
+        end
+        
+        if coinTimer.waitTime < 0 then
+            coinTimer.waitTime = spawnTime
+            table.insert(listOfCoins, Coin())
+        end
+    
+        for i, v in ipairs(listOfCoins) do
+            v:update(dt)
+    
+            if v.x < -50 then
+                table.remove(listOfCoins, i)
+            end
+    
+            if v:checkCollision(player) then
+                v.isColliding = true
+                if not v.hasPickedUp then
+                    score = score + 1
+                    v.hasPickedUp = true
+                    table.remove(listOfCoins, i)
+                end
+            else
+                v.hasPickedUp = false
+            end
+        end
+    end 
 
-    for i, v in ipairs(listOfCoins) do
-        v:update(dt)
-
-        if v.x < -50 then
+    if phase == 1 then
+        for i=1, #listOfCoins do
             table.remove(listOfCoins, i)
         end
+        player:update(dt)
 
-        if v:checkCollision(player) then
-            v.isColliding = true
-            if not v.hasPickedUp then
-                score = score + 1
-                v.hasPickedUp = true
-            end
-        else
-            v.hasPickedUp = false
+        for i, bullet in ipairs(player.ammo) do
+            bullet:update(dt)
         end
     end
 end
 
 function love.draw()
     player:draw()
-    coinTimer:draw()
+    gameTimer:draw()
 
     for i, v in ipairs(player.ammo) do
         v:draw()
@@ -73,6 +99,7 @@ function love.draw()
         v:draw()
     end
 
+    love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(love.graphics.newFont(60))
     love.graphics.print(string.format("%.0f", score), love.graphics.getWidth() / 2, 50)
 end

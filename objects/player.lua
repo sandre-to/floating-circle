@@ -12,14 +12,15 @@ function Player:new()
     
     -- weapon/ammo
     self.ammo = {}
-    self.fireRate = Timer(2, not isAscending, 200, 200)
+    self.weapons = {}
+    self.fireRate = Timer(0.8, not isAscending, 200, 200)
     self.canFire = true
 end
 
 function Player:keyPressed(key)
     if key == "space" and self.canFire == true then
         table.insert(self.ammo, Bullet(self))
-        self.fireRate.isStarting = true
+        self.fireRate.started = true
         self.canFire = false
     end
 end
@@ -29,7 +30,7 @@ function Player:update(dt)
     if self.fireRate.waitTime < 0 then
         self.fireRate.waitTime = 2
         self.canFire = true
-        self.fireRate.isStarting = false
+        self.fireRate.started = false
     end
     
     if love.keyboard.isDown("up") then
@@ -40,10 +41,10 @@ function Player:update(dt)
         self.y = self.y + self.speed * dt
     end
 
-    if self.y > love.graphics.getHeight() then
-        self.y = 0 + self.radius / 2
-    elseif self.y < 0 then
-        self.y = love.graphics.getHeight() - self.radius / 2
+    if self.y > love.graphics.getHeight() + self.height then
+        self.y = 0
+    elseif self.y < 0 - self.height then
+        self.y = love.graphics.getHeight() - self.height
     end
 end
 
