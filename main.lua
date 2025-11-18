@@ -2,9 +2,15 @@ if arg[2] == "debug" then
     require("lldebugger").start()
 end
 
+-- phases
+local coinPhase = 0
+local shopPhase = 1
+local battlePhase = 2
+
 -- variables
 local isAscending = true
 local player
+local buyButton
 local listOfCoins
 
 -- timers
@@ -17,8 +23,16 @@ local score = 0
 local phase = 0
 
 function love.keypressed(key)
-    if phase == 1 then
+    if phase == battlePhase then
         player:keyPressed(key)
+    end
+end
+
+function love.mousepressed(x, y, button)
+    if phase == shopPhase then
+        if button == 1 then
+            buyButton:mousePressed()
+        end
     end
 end
 
@@ -28,23 +42,26 @@ function love.load()
     require "objects.bullet"
     require "objects.timer"
     require "objects.coin"
+    require "ui.button"
 
     coinTimer = Timer(spawnTime, not isAscending, 300, 300)
     gameTimer = Timer(0, isAscending, 300, 50)
     coinTimer.started = true
     gameTimer.started = true
+    
     player = Player()
+    buyButton = Button(200, 200)
     listOfCoins = {}
 end
 
 function love.update(dt)
-    if phase == 0 then
+    if phase == coinPhase then
         player:update(dt)
         coinTimer:update(dt)
         gameTimer:update(dt)
     
-        if gameTimer.waitTime >= 15 then
-            phase = 1
+        if gameTimer.waitTime >= 2 then
+            phase = shopPhase
             player.x = (love.graphics.getWidth() / 2) - 200
             gameTimer.waitTime = 0
             gameTimer.started = false
@@ -75,7 +92,11 @@ function love.update(dt)
         end
     end 
 
-    if phase == 1 then
+    if phase == shopPhase then
+        buyButton:update(dt)
+    end
+
+    if phase == battlePhase then
         for i=1, #listOfCoins do
             table.remove(listOfCoins, i)
         end
@@ -90,6 +111,10 @@ end
 function love.draw()
     player:draw()
     gameTimer:draw()
+    
+    if phase == shopPhase then
+        buyButton:draw()
+    end
 
     for i, v in ipairs(player.ammo) do
         v:draw()
