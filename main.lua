@@ -37,12 +37,7 @@ function love.mousepressed(x, y, button)
 end
 
 function love.load()
-    Object = require "objects.classic"
-    require "objects.player"
-    require "objects.bullet"
-    require "objects.timer"
-    require "objects.coin"
-    require "ui.button"
+    require "load"
 
     coinTimer = Timer(spawnTime, not isAscending, 300, 300)
     gameTimer = Timer(0, isAscending, 300, 50)
